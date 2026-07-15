@@ -1,0 +1,87 @@
+name: Release
+
+# Fires on every push to main. If Cargo.toml's version changed relative to
+# the previous commit (i.e. a version-bump PR — from update-domains.yml or
+# a manual bump — was just merged), this:
+#   1. Runs the full test suite one more time as a safety net.
+#   2. Tags the commit vX.Y.Z.
+#   3. Publishes to crates.io.
+#   4. Creates a GitHub Release with an auto-generated changelog.
+#
+# If the version didn't change (an ordinary docs/CI-only commit), the job
+# exits early and does nothing.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  detect-version-bump:
+    name: Detect version bump
+    runs-on: ubuntu-latest
+    outputs:
+      bumped: ${{ steps.check.outputs.bumped }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: check
+        run: |
+          current=$(grep -m1 '^version' Cargo.toml | sed -E 's/version = "(.*)"/\1/')
+          if git show HEAD~1:Cargo.toml > /tmp/prev_cargo.toml 2>/dev/null; then
+            previous=$(grep -m1 '^version' /tmp/prev_cargo.toml | sed -E 's/version = "(.*)"/\1/')
+          else
+            previous=""
+          fi
+          echo "current=$current previous=$previous"
+          if [ "$current" != "$previous" ]; then
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+            echo "version=$current" >> "$GITHUB_OUTPUT"
+          else
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    name: Tag, publish, and create GitHub release
+    needs: detect-version-bump
+    if: needs.detect-version-bump.outputs.bumped == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run full test suite
+        run: |
+          cargo test --all-features
+          cargo test --no-default-features
+
+      - name: Verify crates.io packaging
+        run: cargo publish --dry-run
+
+      - name: Publish to crates.io
+        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Create tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ needs.detect-version-bump.outputs.version }}" -m "v${{ needs.detect-version-bump.outputs.version }}"
+          git push origin "v${{ needs.detect-version-bump.outputs.version }}"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ needs.detect-version-bump.outputs.version }}"
+          name: "v${{ needs.detect-version-bump.outputs.version }}"
+          generate_release_notes: true
+          body: |
+            Built from upstream commit recorded in `data/SOURCE_COMMIT`
+            at release time. See [CHANGELOG](../blob/main/CHANGELOG.md)
+            for details.

@@ -1,0 +1,49 @@
+[package]
+name = "dispocheck"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+authors = ["Your Name <you@example.com>"]
+description = "Fast, production-ready disposable email detection for Rust with compile-time optimized lookups."
+
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ritikmitra/dispocheck-rs"
+homepage = "https://github.com/ritikmitra/dispocheck-rs"
+documentation = "https://docs.rs/dispocheck"
+readme = "README.md"
+keywords = ["email", "disposable", "validation", "spam", "domain"]
+categories = ["email", "development-tools", "no-std"]
+exclude = [".github/*", "scripts/*"]
+
+[badges]
+maintenance = { status = "actively-developed" }
+
+[lib]
+name = "dispocheck"
+path = "src/lib.rs"
+
+[dependencies]
+phf = { version = "0.14.0", default-features = false }
+
+[build-dependencies]
+phf_codegen = "0.14.0"
+
+[dev-dependencies]
+# Requires a reasonably current stable toolchain (see CI); not part of the
+# published library's MSRV, since dev-dependencies never reach downstream
+# consumers of this crate.
+criterion = { version = "0.8.2", default-features = false }
+
+[[bench]]
+name = "lookup"
+harness = false
+
+[features]
+default = ["std"]
+# Enables std-dependent conveniences (custom/runtime blocklists via HashSet).
+# Disable for no_std environments; the embedded static lookup still works.
+std = []
+
+[profile.release]
+lto = true
+codegen-units = 1

@@ -1,0 +1,22 @@
+name: Report a missing/incorrect domain
+description: A domain should (or shouldn't) be in the blocklist
+labels: ["upstream-data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This crate vendors its domain list automatically from
+        [disposable-email-domains/disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains).
+        Domain additions/removals need to happen there — please open a PR
+        on that repository directly (they require a screenshot showing the
+        domain generating a disposable address). Once merged upstream, it
+        will sync into this crate automatically, usually within a day.
+
+        This issue template is just a pointer; feel free to close this repo's
+        issue once you've filed it upstream.
+  - type: input
+    id: domain
+    attributes:
+      label: Domain in question
+    validations:
+      required: true

@@ -1,0 +1,79 @@
+name: Update domain list
+
+# Upstream (disposable-email-domains/disposable-email-domains) updates its
+# .conf file roughly daily. This workflow checks for changes every day,
+# and when the data has actually changed, opens a pull request that bumps
+# the crate's patch version. Merging that PR (via the "Merge" step, either
+# by a human or auto-merge) creates the version-bump commit on `main`,
+# which the release workflow then tags and publishes.
+#
+# We deliberately open a PR rather than pushing straight to main so that:
+#   - CI (tests, clippy, cargo-deny, cargo-audit) runs against the new data
+#     before it ships,
+#   - there's a human-reviewable diff of exactly which domains changed.
+
+on:
+  schedule:
+    # Runs daily at 06:17 UTC (an off-the-hour time to avoid GitHub Actions'
+    # top-of-hour scheduling congestion).
+    - cron: "17 6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-domains
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Check upstream & open PR if changed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch latest upstream domain list
+        id: fetch
+        run: scripts/update_domains.sh
+
+      - name: Bump patch version
+        if: steps.fetch.outputs.changed == 'true'
+        id: bump
+        run: echo "new_version=$(python3 scripts/bump_patch_version.py)" >> "$GITHUB_OUTPUT"
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.fetch.outputs.changed == 'true'
+
+      - name: Refresh Cargo.lock
+        if: steps.fetch.outputs.changed == 'true'
+        run: cargo generate-lockfile
+
+      - name: Sanity build against new data
+        if: steps.fetch.outputs.changed == 'true'
+        run: cargo test --all-features
+
+      - name: Open pull request
+        if: steps.fetch.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(data): update disposable domain list to upstream ${{ steps.fetch.outputs.upstream_commit }}"
+          branch: automated/update-domains
+          delete-branch: true
+          title: "Update disposable domain list (v${{ steps.bump.outputs.new_version }})"
+          labels: automated,dependencies
+          body: |
+            Upstream data changed. This PR:
+
+            - Vendors the latest `disposable_email_blocklist.conf` from
+              [disposable-email-domains/disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains)
+              at commit `${{ steps.fetch.outputs.upstream_commit }}`.
+            - Bumps the crate's patch version to `${{ steps.bump.outputs.new_version }}`.
+
+            CI must pass before merging. Merging this PR to `main` triggers
+            the release workflow, which tags and publishes the new version
+            to crates.io automatically.

@@ -1,0 +1,24 @@
+dispocheck (Rust crate)
+======================================
+
+This crate's *code* (everything under `src/`, `build.rs`, tests, benches,
+and examples) is original work, licensed at your option under either:
+
+  - the MIT License (see LICENSE-MIT), or
+  - the Apache License, Version 2.0 (see LICENSE-APACHE)
+
+This crate's *data* (`data/disposable_email_blocklist.conf`) is vendored
+from the upstream project:
+
+  disposable-email-domains/disposable-email-domains
+  https://github.com/disposable-email-domains/disposable-email-domains
+
+which the upstream project dedicates to the public domain under the
+Creative Commons CC0 1.0 Universal license
+(https://creativecommons.org/publicdomain/zero/1.0/). No rights are
+reserved on the data itself, and no attribution is legally required to
+use it — this notice is included as a courtesy to credit the many
+contributors who maintain that list.
+
+The exact upstream commit each release was built from is recorded in
+`data/SOURCE_COMMIT` at release time.

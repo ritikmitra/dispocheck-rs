@@ -95,14 +95,13 @@ impl Blocklist {
         if normalized.is_empty() {
             return false;
         }
-        let hit = domain_suffixes(&normalized).any(|suffix| {
+        domain_suffixes(&normalized).any(|suffix| {
             if self.removed.contains(suffix) {
                 false
             } else {
                 self.extra.contains(suffix) || crate::BLOCKLIST.contains(suffix)
             }
-        });
-        hit
+        })
     }
 
     /// Total number of domains currently in effect (embedded set minus

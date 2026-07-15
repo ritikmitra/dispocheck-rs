@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use dispocheck::{is_disposable_domain, is_disposable_email};
 use std::hint::black_box;
 

@@ -103,8 +103,7 @@ pub fn is_disposable_domain(domain: &str) -> bool {
     if normalized.is_empty() {
         return false;
     }
-    let hit = domain_suffixes(&normalized).any(|suffix| BLOCKLIST.contains(suffix));
-    hit
+    domain_suffixes(&normalized).any(|suffix| BLOCKLIST.contains(suffix))
 }
 
 /// Returns the total number of domains in the embedded blocklist.

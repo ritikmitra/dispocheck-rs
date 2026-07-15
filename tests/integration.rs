@@ -29,10 +29,19 @@ fn detects_known_disposable_domains() {
 
 #[test]
 fn rejects_common_legitimate_domains() {
-    for domain in ["gmail.com", "outlook.com", "example.com", "company.co.uk"] {
+    for domain in [
+        "gmail.com",
+        "outlook.com",
+        "example.com",
+        "company.co.uk",
+        "",
+        " ",
+        ".",
+        "...",
+    ] {
         assert!(
             !is_disposable_domain(domain),
-            "{domain} unexpectedly flagged as disposable"
+            "{domain:?} unexpectedly flagged as disposable"
         );
     }
 }
@@ -71,4 +80,9 @@ fn does_not_falsely_match_domains_containing_a_blocked_domain_as_substring() {
     // contains "mailinator.com" as a substring; matching is component-based
     // (split on '.'), so it must not be flagged just because of that.
     assert!(!is_disposable_domain("reallymailinator.com"));
+}
+
+#[test]
+fn iterator_matches_len() {
+    assert_eq!(dispocheck::iter().count(), len());
 }

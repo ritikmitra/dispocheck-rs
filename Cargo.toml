@@ -3,7 +3,7 @@ name = "dispocheck"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.97"
-authors = ["Your Name <you@example.com>"]
+authors = ["Ritik Mitra"]
 description = "Fast, production-ready disposable email detection for Rust with compile-time optimized lookups."
 
 license = "MIT OR Apache-2.0"

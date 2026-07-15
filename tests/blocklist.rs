@@ -139,11 +139,7 @@ fn runtime_domains_are_case_normalized() {
 
 #[test]
 fn from_domains_accepts_multiple_domains() {
-    let list = Blocklist::from_domains([
-        "first.test",
-        "second.test",
-        "third.test",
-    ]);
+    let list = Blocklist::from_domains(["first.test","second.test","third.test"]);
 
     assert!(list.is_disposable_domain("first.test"));
     assert!(list.is_disposable_domain("second.test"));

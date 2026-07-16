@@ -58,7 +58,7 @@ jobs:
 
       - name: Open pull request
         if: steps.fetch.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore(data): update disposable domain list to upstream ${{ steps.fetch.outputs.upstream_commit }}"

@@ -32,13 +32,13 @@ jobs:
     name: Check upstream & open PR if changed
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Fetch latest upstream domain list
         id: fetch
-        run: scripts/update_domains.sh
+        run: bash scripts/update_domains.sh
 
       - name: Bump patch version
         if: steps.fetch.outputs.changed == 'true'
